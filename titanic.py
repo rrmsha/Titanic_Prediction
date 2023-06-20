@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 #LOAD TRAINED MODEL
-with open("titanic_log_reg.pkcls", "rb") as model:
+with open("titanic_tree.pkcls", "rb") as model:
     loaded_model = pickle.load(model)
 
 #ADD COMPONENTS AND SIDEBAR
@@ -79,5 +79,6 @@ with body:
 #MODEL ACCURACY AND OTHER MEASURES 
 with footer:
     st.markdown("### Model Accuracy: ")
-    st.markdown("> AUC score - `0.750`")
+    "The model is trained on Decision Tree and has had preprocessing done, on Orange Platform"
+    st.markdown("> AUC score - `0.773`")
     st.markdown("> Classification Accuracy - `0.774`")
