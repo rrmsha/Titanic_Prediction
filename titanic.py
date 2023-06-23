@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import numpy as np
 import pandas as pd
+import shap
+from streamlit_shap import st_shap
 
 #LOAD TRAINED MODEL
-with open("titanic_tree.pkcls", "rb") as model:
+with open("titanic_rforest.pkcls", "rb") as model:
     loaded_model = pickle.load(model)
 
 #ADD COMPONENTS AND SIDEBAR
@@ -37,10 +39,43 @@ def get_user_input():
     age_inp = age.index(user_age)
     sex = ["male", "female"]
     sex_inp = sex.index(user_sex)
-
     X = np.column_stack((status_inp, age_inp, sex_inp))
     data_table = Orange.data.Table(domain, X)
+    
     return [user_status, user_age, user_sex], data_table
+
+def input_to_df(input_values):
+    status_crew = 1.0 if "crew" in input_values else 0.0
+    status_first = 1.0 if "first" in input_values else 0.0
+    status_second = 1.0 if "second" in input_values else 0.0
+    status_third = 1.0 if "third" in input_values else 0.0
+    age_adult = 1.0 if "adult" in input_values else 0.0
+    age_child = 1.0 if "child" in input_values else 0.0
+    sex_female = 1.0 if "female" in input_values else 0.0
+    sex_male = 1.0 if "male" in input_values else 0.0
+    df = pd.DataFrame({
+        "status_crew": status_crew,
+        "status_first": status_first,
+        "status_second": status_second,
+        "status_third": status_third,
+        "age_adult": age_adult,
+        "age_child": age_child,
+        "sex_female": sex_female,
+        "sex_male": sex_male
+    }, index=[0])
+    return df
+
+def make_force_plot(input_values, data_table):
+    skl_model = loaded_model.skl_model
+    data = get_data()
+    features = ['status', 'age', 'sex']
+    X = pd.get_dummies(data[features])
+    input_df = input_to_df(input_values)
+    explainer = shap.TreeExplainer(skl_model)
+    shap_values = explainer.shap_values(input_df)
+    plt = shap.force_plot(explainer.expected_value[1], shap_values[1], input_df, out_names = "Input Predicition Analysis")
+    return plt
+
 
 #INPUT
 with side_bar:
@@ -78,7 +113,18 @@ with body:
     st.divider()
 #MODEL ACCURACY AND OTHER MEASURES 
 with footer:
+    st.markdown("### SHAP analysis for prediction: ")
+    fig = make_force_plot(user_input, data_table)
+    st_shap(fig)
+    with st.expander("Explanation of plot"):
+        st.markdown("The plot shows each feature's contribution towards the prediction with values closer to 1 ascertaining survival \
+                    while those closer to 0 showing slimmer chances of making it out of the shipwreck.")
+        st.markdown("* Features in red increase the value of prediction and the greater the length of the bar,\
+                     the greater is the feature's contribution in prediction.")
+        st.markdown("* Features in blue do the reverse. They decrease the chances of survival and their weight in prediction directly corresponds to their length.")
+        st.markdown("* Base value is the value that would be predicted if we did not know any features for the current output.")
+    st.divider()
     st.markdown("### Model Accuracy: ")
-    "The model is trained on Decision Tree and has had preprocessing done, on Orange Platform"
-    st.markdown("> AUC score - `0.773`")
-    st.markdown("> Classification Accuracy - `0.774`")
+    "The model is trained on Random Forest and has had preprocessing done, on Orange Platform"
+    st.markdown("> AUC score - `0.772`")
+    st.markdown("> Classification Accuracy - `0.791`")
