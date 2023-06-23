@@ -1,7 +1,6 @@
 import pickle
 import Orange
 from Orange.data import Domain, DiscreteVariable
-import matplotlib.pyplot as plt
 import streamlit as st
 import numpy as np
 import pandas as pd
