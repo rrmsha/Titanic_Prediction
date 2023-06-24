@@ -72,7 +72,7 @@ def make_force_plot(input_values, data_table):
     input_df = input_to_df(input_values)
     explainer = shap.TreeExplainer(skl_model)
     shap_values = explainer.shap_values(input_df)
-    plt = shap.force_plot(explainer.expected_value[1], shap_values[1], input_df, out_names = "Input Predicition Analysis")
+    plt = shap.force_plot(explainer.expected_value[1], shap_values[1], input_df)
     return plt
 
 
